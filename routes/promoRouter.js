@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const authenticate = require('../authenticate')
 const Promotions = require('../models/promotions');
+const cors = require("./cors");
 
 
 const promoRouter = express.Router();
@@ -10,7 +11,10 @@ promoRouter.use(bodyParser.json());
 
 promoRouter
     .route("/")
-    .get((req, res, next) => {
+    .options(cors.corsWithOptions, (req, res) => {
+        res.sendStatus(200);
+    })
+    .get(cors.cors, (req, res, next) => {
         Promotions.find({})
             .then(
                 (promotions) => {
@@ -22,24 +26,35 @@ promoRouter
             )
             .catch((err) => next(err));
     })
-    .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-        Promotions.create(req.body)
-            .then(
-                (promotion) => {
-                    console.log("Dish Created ", promotion);
-                    res.statusCode = 200;
-                    res.setHeader("Content-Type", "application/json");
-                    res.json(promotions);
-                },
-                (err) => next(err)
-            )
-            .catch((err) => next(err));
-    })
-    .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-        res.statusCode = 403;
-        res.end("PUT operation not supported on /dishes");
-    })
+    .post(
+        cors.corsWithOptions,
+        authenticate.verifyUser,
+        authenticate.verifyAdmin,
+        (req, res, next) => {
+            Promotions.create(req.body)
+                .then(
+                    (promotion) => {
+                        console.log("Dish Created ", promotion);
+                        res.statusCode = 200;
+                        res.setHeader("Content-Type", "application/json");
+                        res.json(promotions);
+                    },
+                    (err) => next(err)
+                )
+                .catch((err) => next(err));
+        }
+    )
+    .put(
+        cors.corsWithOptions,
+        authenticate.verifyUser,
+        authenticate.verifyAdmin,
+        (req, res, next) => {
+            res.statusCode = 403;
+            res.end("PUT operation not supported on /dishes");
+        }
+    )
     .delete(
+        cors.corsWithOptions,
         authenticate.verifyUser,
         authenticate.verifyAdmin,
         (req, res, next) => {
@@ -58,7 +73,10 @@ promoRouter
 
 promoRouter
     .route("/:promotionId")
-    .get((req, res, next) => {
+    .options(cors.corsWithOptions, (req, res) => {
+        res.sendStatus(200);
+    })
+    .get(cors.cors, (req, res, next) => {
         Promotions.findById(req.params.promotionId)
             .then(
                 (dish) => {
@@ -70,27 +88,38 @@ promoRouter
             )
             .catch((err) => next(err));
     })
-    .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-        res.statusCode = 403;
-        res.end("POST operation not supported on /dishes/" + req.params.dishId);
-    })
-    .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-        Promotions.findByIdAndUpdate(
-                req.params.dishId, {
-                    $set: req.body,
-                }, { new: true }
-            )
-            .then(
-                (dish) => {
-                    res.statusCode = 200;
-                    res.setHeader("Content-Type", "application/json");
-                    res.json(dish);
-                },
-                (err) => next(err)
-            )
-            .catch((err) => next(err));
-    })
+    .post(
+        cors.corsWithOptions,
+        authenticate.verifyUser,
+        authenticate.verifyAdmin,
+        (req, res, next) => {
+            res.statusCode = 403;
+            res.end("POST operation not supported on /dishes/" + req.params.dishId);
+        }
+    )
+    .put(
+        cors.corsWithOptions,
+        authenticate.verifyUser,
+        authenticate.verifyAdmin,
+        (req, res, next) => {
+            Promotions.findByIdAndUpdate(
+                    req.params.dishId, {
+                        $set: req.body,
+                    }, { new: true }
+                )
+                .then(
+                    (dish) => {
+                        res.statusCode = 200;
+                        res.setHeader("Content-Type", "application/json");
+                        res.json(dish);
+                    },
+                    (err) => next(err)
+                )
+                .catch((err) => next(err));
+        }
+    )
     .delete(
+        cors.corsWithOptions,
         authenticate.verifyUser,
         authenticate.verifyAdmin,
         (req, res, next) => {
