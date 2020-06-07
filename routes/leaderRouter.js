@@ -16,7 +16,7 @@ leaderRouter
     })
     .get(cors.cors, (req, res, next) => {
         leaders
-            .find({})
+            .find(req.query)
             .then(
                 (leaders) => {
                     res.statusCode = 200;
